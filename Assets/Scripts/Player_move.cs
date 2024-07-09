@@ -1,14 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Player_move : MonoBehaviour
 {
-    private Rigidbody rb;
-    public float speed = 2.0f;
-    public float jumpForce = 2.0f;
+    [SerializeField] private Rigidbody rb;
+    [SerializeField] private float speed = 10.0f;
+    [SerializeField] private float maxSpeed = 10.0f;
+    [SerializeField] private float jumpForce = 10.0f;
     private bool isGrounded;
-    public Vector3 jump;
 
     public KeyCode Forward_Button = KeyCode.W;
     public KeyCode Left_Button = KeyCode.A;
@@ -18,9 +16,7 @@ public class Player_move : MonoBehaviour
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
         Physics.IgnoreLayerCollision(0, 2);
-        jump = new Vector3(0.0f, 2.0f, 0.0f);
     }
 
     void OnCollisionStay()
@@ -48,8 +44,13 @@ public class Player_move : MonoBehaviour
         }
         if(Input.GetKeyDown(Jump_Button) && isGrounded)
         {
-            rb.AddForce(jump * jumpForce, ForceMode.Impulse);
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isGrounded = false;
+        }
+        
+        if (rb.linearVelocity.magnitude > maxSpeed)
+        {
+            rb.AddForce(-1 * Vector3.ClampMagnitude(rb.linearVelocity, rb.linearVelocity.magnitude - maxSpeed), ForceMode.Impulse);
         }
     }
 }
