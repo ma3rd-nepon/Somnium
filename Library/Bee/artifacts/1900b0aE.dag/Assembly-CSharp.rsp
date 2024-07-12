@@ -358,6 +358,7 @@
 -analyzer:"D:/program files/2022.3.36f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
 "Assets/Scripts/Camera.cs"
 "Assets/Scripts/PlayerController.cs"
+"Assets/Scripts/PlayerController_1.cs"
 -langversion:9.0
 /unsafe+
 /deterministic

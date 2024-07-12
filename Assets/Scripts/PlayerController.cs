@@ -1,61 +1,78 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
+
 public class PlayerController : MonoBehaviour
-{   
-    private Rigidbody rb;
-    [SerializeField] private float speed = 2.0f;
-    [SerializeField] private float maxSpeed = 3.0f;
-    [SerializeField] private float jumpForce = 5.0f;
-    [SerializeField] private bool freezeRotation = true;
-    // [SerializeField] private bool freezeRotationX, freezeRotationY, freezeRotationZ;
+{
+    [SerializeField] private float walkingSpeed = 7.5f;
+    [SerializeField] private float runningSpeed = 11.5f;
+    [SerializeField] private float jumpSpeed = 8.0f;
+    [SerializeField] private float gravity = 9.81f;
 
-    private float rotatex, rotatey, rotatez;
-    private bool isGrounded;
-    private Transform rotating;
+    [SerializeField] private Transform playerCamera;
 
-    public KeyCode Forward_Button = KeyCode.W;
-    public KeyCode Left_Button = KeyCode.A;
-    public KeyCode Back_Button = KeyCode.S;
-    public KeyCode Right_Button = KeyCode.D;
-    public KeyCode Jump_Button = KeyCode.Space;
+    [SerializeField] private float sensivityX = 2.0f;
+    [SerializeField] private float sensivityY = 2.0f;
+    [SerializeField] private float lookXLimit = 45.0f;
+
+    CharacterController characterController;
+
+    Vector3 forward = Vector3.zero;
+    Vector3 right = Vector3.zero;
+    Vector3 moveDirection = Vector3.zero;
+
+    float rotationX = 0;
+    float curSpeedX = 0;
+    float curSpeedY = 0;
+
+    [HideInInspector] public bool canMove = true;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        Physics.IgnoreLayerCollision(0, 2);
-        rotating = transform;
-    }
+        characterController = GetComponent<CharacterController>();
 
-    void OnCollisionEnter(Collision collision)
-    {
-        // isGrounded = collision.gameObject.layer < 7 ? true : false;
-        isGrounded = true;
+        forward = transform.TransformDirection(Vector3.forward);
+        right = transform.TransformDirection(Vector3.right);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void Update()
-    {   
-        if (Input.GetKey(Right_Button)) {
-            rb.AddForce(Vector3.right * speed);
+    {
+        forward = characterController.isGrounded ? transform.TransformDirection(Vector3.forward) : forward;
+        right = characterController.isGrounded ? transform.TransformDirection(Vector3.right) : right;
+
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        curSpeedX = canMove ? (characterController.isGrounded ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Vertical") : curSpeedX) : 0;
+        curSpeedY = canMove ? (characterController.isGrounded ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Horizontal") : curSpeedY) : 0;
+        float movementDirectionY = moveDirection.y;
+        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
+        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
+        {
+            moveDirection.y = jumpSpeed;
         }
-        if (Input.GetKey(Left_Button)) {
-            rb.AddForce(Vector3.left * speed);
-        }
-        if (Input.GetKey(Forward_Button)) {
-            rb.AddForce(Vector3.forward * speed);
-        }
-        if (Input.GetKey(Back_Button)) {
-            rb.AddForce(Vector3.back * speed);
-        }
-        if(Input.GetKeyDown(Jump_Button) && isGrounded) {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isGrounded = false;
+        else
+        {
+            moveDirection.y = movementDirectionY;
         }
 
-        rb.freezeRotation = freezeRotation;
+        if (!characterController.isGrounded)
+        {
+            moveDirection.y -= gravity * Time.deltaTime;
+        }
 
-        // rotatex = freezeRotationX ? 0 : rotating.eulerAngles.x;
-        // rotatey = freezeRotationY ? 0 : rotating.eulerAngles.y;
-        // rotatez = freezeRotationZ ? 0 : rotating.eulerAngles.z;
-        // rotating.eulerAngles = new Vector3 (rotatex, rotatey, rotatez);
+        characterController.Move(moveDirection * Time.deltaTime);
+
+        if (canMove)
+        {
+            rotationX += -Input.GetAxis("Mouse Y") * sensivityX;
+            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * sensivityY, 0);
+        }
     }
 }

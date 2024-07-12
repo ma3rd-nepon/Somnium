@@ -18,10 +18,11 @@ public class Camera : MonoBehaviour
                 transform.eulerAngles = new Vector3(0, 0, 0);
                 Cursor.visible = false;
                 temppers = false;
-
+            }
             x = 1.0f * Input.GetAxis("Mouse X");
             y = -1.0f * Input.GetAxis("Mouse Y");
             transform.Rotate(y, x, 0);
+            target.Rotate(0, x, 0);
             offset = new Vector3(0, 2, 0);
 
         }
