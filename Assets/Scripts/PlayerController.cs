@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour
     float curSpeedY = 0;
 
     [HideInInspector] public bool canMove = true;
+    [HideInInspector] public bool crouching = false;
 
     void Start()
     {
@@ -74,5 +75,9 @@ public class PlayerController : MonoBehaviour
             playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * sensivityY, 0);
         }
+
+        // if (Input.GetButton("Crouch") && canMove && characterController.isGrounded) {
+        //     crouching = !crouching;
+        //     characterController.height = crouching ? 1 : 2;
     }
 }
